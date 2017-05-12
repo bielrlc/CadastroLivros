@@ -1,6 +1,5 @@
 package com.example.mustache.cadastrolivros;
 
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
@@ -8,7 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RatingBar;
-import android.widget.Toast;
 
 import com.example.mustache.cadastrolivros.model.Livro;
 
@@ -32,7 +30,7 @@ public class FormularioHelper {
 
     public FormularioHelper(CadastroLivroActivity activity) {
 
-        this.foto = (ImageView) activity.findViewById(R.id.foto_usuario);
+        this.foto = (ImageView) activity.findViewById(R.id.foto_livro);
         this.fotoButton = (Button) activity.findViewById(R.id.foto_button);
         this.isbn = (EditText) activity.findViewById(R.id.cadastro_isbn);
         this.nome = (EditText) activity.findViewById(R.id.cadastro_nome);
@@ -44,18 +42,17 @@ public class FormularioHelper {
         livro = new Livro();
     }
 
-    public void setLivroNoFormulario(Livro livro){
+    public void colocaLivroNoFormulario(Livro livro){
         isbn.setText(livro.getIsbn());
         nome.setText(livro.getNome());
         autor.setText(livro.getAutor());
         ano.setText(livro.getAno());
         site.setText(livro.getSite());
         nota.setProgress(livro.getNota().intValue());
-
         this.livro = livro;
     }
 
-    public Livro getLivroFromFormulario(){
+    public Livro pegaLivroDoFormulario(){
 
         this.livro.setIsbn(isbn.getText().toString());
         this.livro.setNome(nome.getText().toString());
@@ -63,6 +60,7 @@ public class FormularioHelper {
         this.livro.setAno(ano.getText().toString());
         this.livro.setSite(site.getText().toString());
         this.livro.setNota(Double.valueOf(nota.getProgress()));
+        this.livro.setCaminhoFoto((String) foto.getTag());
 
         return livro;
     }
@@ -102,11 +100,10 @@ public class FormularioHelper {
     }
 
     public void carregaImagem(String localArquivoFoto) {
-        Bitmap imagemFoto = BitmapFactory.decodeFile(localArquivoFoto);
-        Bitmap imagemFotoReduzida = Bitmap.createScaledBitmap(
-                imagemFoto, imagemFoto.getWidth(), 300, true);
-        foto.setScaleType(ImageView.ScaleType.FIT_XY);
-        foto.setImageBitmap(imagemFotoReduzida);
+        Bitmap imagem = BitmapFactory.decodeFile(localArquivoFoto);
+        Bitmap imagemReduzida = Bitmap.createScaledBitmap(imagem, 400, 300, true);
+        foto.setImageBitmap(imagemReduzida);
         foto.setTag(localArquivoFoto);
+        foto.setScaleType(ImageView.ScaleType.FIT_XY);
     }
 }

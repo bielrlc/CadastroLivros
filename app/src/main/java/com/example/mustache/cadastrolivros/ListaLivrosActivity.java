@@ -10,18 +10,22 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.mustache.cadastrolivros.dao.CadastroLivroDAO;
+import com.example.mustache.cadastrolivros.adapter.ListaLivrosAdapter;
+import com.example.mustache.cadastrolivros.converter.LivroConverter;
+import com.example.mustache.cadastrolivros.dao.LivroDAO;
 import com.example.mustache.cadastrolivros.model.Livro;
 import com.example.mustache.cadastrolivros.permissions.Permissao;
+import com.example.mustache.cadastrolivros.support.WebClient;
 
+import java.io.IOException;
 import java.util.List;
 
 public class ListaLivrosActivity extends AppCompatActivity {
@@ -58,26 +62,12 @@ public class ListaLivrosActivity extends AppCompatActivity {
         this.listaLivros = (ListView) findViewById(R.id.lista_livros);
         registerForContextMenu(listaLivros);
 
-        /*
-        listaLivros.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> adapter, View view, int posicao, long id) {
-
-                livroSelecionado = (Livro) adapter.getItemAtPosition(posicao);
-
-                ContextActionBar actionBar = new ContextActionBar(ListaLivrosActivity.this, livroSelecionado);
-                ListaLivrosActivity.this.startSupportActionMode(actionBar);
-
-                return true;
-            }
-        });*/
-
         listaLivros.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapter, View view, int posicao, long id) {
 
                 livroSelecionado = (Livro) adapter.getItemAtPosition(posicao);
-                CadastroLivroDAO dao = new CadastroLivroDAO(ListaLivrosActivity.this, CadastroLivroDAO.DATABASE, null, CadastroLivroDAO.VERSION);
+                LivroDAO dao = new LivroDAO(ListaLivrosActivity.this);
                 livroSelecionado = dao.getLivroPorId(livroSelecionado.getId());
 
                 if (livroSelecionado == null)
@@ -110,10 +100,10 @@ public class ListaLivrosActivity extends AppCompatActivity {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,
                                                         int which) {
-                                        CadastroLivroDAO dao = new CadastroLivroDAO(ListaLivrosActivity.this, CadastroLivroDAO.DATABASE, null, CadastroLivroDAO.VERSION);
+                                        LivroDAO dao = new LivroDAO(ListaLivrosActivity.this);
                                         dao.deleteLivro(livroSelecionado);
                                         dao.close();
-                                        Log.v(CadastroLivroDAO.LOG, "Livro excluido do banco de dados");
+                                        Log.v(LivroDAO.LOG, "Livro excluido do banco de dados");
 
                                         carregaLista();
                                     }
@@ -148,14 +138,59 @@ public class ListaLivrosActivity extends AppCompatActivity {
     }
 
     public void carregaLista(){
-        CadastroLivroDAO dao = new CadastroLivroDAO(this, CadastroLivroDAO.DATABASE, null, CadastroLivroDAO.VERSION);
-        livros = dao.getList();
+        LivroDAO dao = new LivroDAO(this);
+        livros = dao.getLista();
         dao.close();
 
-        ArrayAdapter<Livro> adapter = new ArrayAdapter<Livro>(this, android.R.layout.simple_list_item_1, livros);
+        ListaLivrosAdapter adapter = new ListaLivrosAdapter(this, livros);
 
         this.listaLivros.setAdapter(adapter);
-        if (listaLivros == null)
-            Log.i(LOG, "Lista sem registros");
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_lista_alunos, menu);
+        return true;
+    }
+
+    /*
+        listaLivros.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> adapter, View view, int posicao, long id) {
+
+                livroSelecionado = (Livro) adapter.getItemAtPosition(posicao);
+
+                ContextActionBar actionBar = new ContextActionBar(ListaLivrosActivity.this, livroSelecionado);
+                ListaLivrosActivity.this.startSupportActionMode(actionBar);
+
+                return true;
+            }
+        });*/
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()){
+
+            case R.id.menu_enviar_notas:
+                LivroDAO dao = new LivroDAO(this);
+                List<Livro> livros = dao.getLista();
+                dao.close();
+
+                String json = new LivroConverter().toJson(livros);
+
+                WebClient webClient = new WebClient();
+                String resposta = null;
+                try {
+                    resposta = webClient.post(json);
+                } catch (IOException e) {
+                    Log.e(ListaLivrosActivity.LOG, "Problemas com o WebClient em tempo de execução");
+                    e.printStackTrace();
+                }
+
+                Log.i(LOG, "Reposta do JSON = " + resposta);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

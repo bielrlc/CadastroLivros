@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.example.mustache.cadastrolivros.model.Livro;
@@ -16,15 +17,15 @@ import java.util.List;
  * Created by Pinhas on 18/04/2017.
  */
 
-public class CadastroLivroDAO extends SQLiteOpenHelper{
+public class LivroDAO extends SQLiteOpenHelper{
 
     public final static String DATABASE = "CadastroLivros";
-    public final static int VERSION = 1;
+    public final static int VERSION = 5;
     public final static String TABELA = "Livro";
     public final static String LOG = "SISTEMA";
 
-    public CadastroLivroDAO(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
-        super(context, DATABASE, factory, VERSION);
+    public LivroDAO(Context context) {
+        super(context, DATABASE, null, VERSION);
     }
 
     @Override
@@ -44,27 +45,19 @@ public class CadastroLivroDAO extends SQLiteOpenHelper{
 
     @Override
     public void onUpgrade(SQLiteDatabase database, int versaoAntiga, int versaoNova) {
-        String sql = "DROP TABLE IF EXISTS " + TABELA;
+        String sql = "ALTER TABLE " + TABELA + " ADD COLUMN caminhoFoto TEXT;";
         database.execSQL(sql);
-        Log.v(LOG, "Banco de dados excluído");
-        onCreate(database);
+        Log.v(LOG, "Banco de dados alterado");
     }
 
     public void insereLivro(Livro livro){
-        ContentValues values = new ContentValues();
-
-        values.put("isbn", livro.getIsbn());
-        values.put("nome", livro.getNome());
-        values.put("autor", livro.getAutor());
-        values.put("ano", livro.getAno());
-        values.put("site", livro.getSite());
-        values.put("nota", livro.getNota());
-
+        ContentValues values = retornaContentValues(livro);
         getWritableDatabase().insert(TABELA, null, values);
-        Log.v(LOG, "Livro inserido com sucesso");
+        Log.v(LOG, "Livro inserido com sucesso, ID = " + String.valueOf(livro.getId()));
     }
 
-    public void alteraLivro(Livro livro){
+    @NonNull
+    private ContentValues retornaContentValues(Livro livro) {
         ContentValues values = new ContentValues();
 
         values.put("id", livro.getId());
@@ -74,39 +67,51 @@ public class CadastroLivroDAO extends SQLiteOpenHelper{
         values.put("ano", livro.getAno());
         values.put("site", livro.getSite());
         values.put("nota", livro.getNota());
+        values.put("caminhoFoto", livro.getCaminhoFoto());
+        return values;
+    }
 
+    public void alteraLivro(Livro livro){
+        ContentValues values = retornaContentValues(livro);
         String[] idParaSerAlterado = {livro.getId().toString()};
         getWritableDatabase().update(TABELA, values, "id=?", idParaSerAlterado);
         Log.v(LOG, "Livro alterado com sucesso");
     }
 
-    public List<Livro> getList(){
+    public List<Livro> getLista(){
         SQLiteDatabase database = getReadableDatabase();
 
         ArrayList<Livro> livros = new ArrayList<Livro>();
 
-        Cursor cursor = database.rawQuery("SELECT * FROM " + TABELA + ";", null);
+        Cursor cursor = null;
 
-        while (cursor.moveToNext()){
-            Livro livro = new Livro();
+        try {
+            cursor = database.rawQuery("SELECT * FROM " + TABELA + ";", null);
 
-            livro.setId(cursor.getLong(cursor.getColumnIndex("id")));
-            livro.setIsbn(cursor.getString(cursor.getColumnIndex("isbn")));
-            livro.setNome(cursor.getString(cursor.getColumnIndex("nome")));
-            livro.setAutor(cursor.getString(cursor.getColumnIndex("autor")));
-            livro.setAno(cursor.getString(cursor.getColumnIndex("ano")));
-            livro.setSite(cursor.getString(cursor.getColumnIndex("site")));
-            livro.setNota(cursor.getDouble(cursor.getColumnIndex("nota")));
+            while (cursor.moveToNext()){
+                Livro livro = new Livro();
 
-            livros.add(livro);
+                livro.setId(cursor.getLong(cursor.getColumnIndex("id")));
+                livro.setIsbn(cursor.getString(cursor.getColumnIndex("isbn")));
+                livro.setNome(cursor.getString(cursor.getColumnIndex("nome")));
+                livro.setAutor(cursor.getString(cursor.getColumnIndex("autor")));
+                livro.setAno(cursor.getString(cursor.getColumnIndex("ano")));
+                livro.setSite(cursor.getString(cursor.getColumnIndex("site")));
+                livro.setNota(cursor.getDouble(cursor.getColumnIndex("nota")));
+                livro.setCaminhoFoto(cursor.getString(cursor.getColumnIndex("caminhoFoto")));
+
+                livros.add(livro);
+            }
         }
 
-        cursor.close();
+        finally {
+            cursor.close();
+        }
 
         if (livros.isEmpty())
             Log.v(LOG, "Lista vazia");
-        else
-            Log.v(LOG,"Retornando lista de livros cadastrados");
+
+        Log.v(LOG,"Retornando lista de livros cadastrados");
 
         return livros;
     }
@@ -139,5 +144,13 @@ public class CadastroLivroDAO extends SQLiteOpenHelper{
 
         Log.v(LOG, "Retornando Livro selecionado");
         return livro;
+    }
+
+    public void insereOuAltera(Livro livro) {
+        Log.i("ID = ", String.valueOf(livro.getId()));
+        if (livro.getId() == null)
+            insereLivro(livro);
+        else
+            alteraLivro(livro);
     }
 }

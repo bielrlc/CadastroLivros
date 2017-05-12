@@ -8,7 +8,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.mustache.cadastrolivros.ListaLivrosActivity;
-import com.example.mustache.cadastrolivros.dao.CadastroLivroDAO;
+import com.example.mustache.cadastrolivros.dao.LivroDAO;
 import com.example.mustache.cadastrolivros.model.Livro;
 
 /**
@@ -39,9 +39,9 @@ public class ContextActionBar implements ActionMode.Callback {
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog,
                                                         int which) {
-                                        CadastroLivroDAO dao = new CadastroLivroDAO(activity, CadastroLivroDAO.DATABASE, null, CadastroLivroDAO.VERSION);
+                                        LivroDAO dao = new LivroDAO(activity);
                                         dao.deleteLivro(livroSelecionado);
-                                        Log.v(CadastroLivroDAO.LOG, "Livro excluido do banco de dados");
+                                        Log.v(LivroDAO.LOG, "Livro excluido do banco de dados");
                                         dao.close();
 
                                         activity.carregaLista();

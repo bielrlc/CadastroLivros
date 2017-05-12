@@ -14,6 +14,7 @@ public class Livro implements Serializable{
     private String ano;
     private String site;
     private Double nota;
+    private String caminhoFoto;
 
     public String getCaminhoFoto() {
         return caminhoFoto;
@@ -22,8 +23,6 @@ public class Livro implements Serializable{
     public void setCaminhoFoto(String caminhoFoto) {
         this.caminhoFoto = caminhoFoto;
     }
-
-    private String caminhoFoto;
 
     public Long getId() {
         return id;

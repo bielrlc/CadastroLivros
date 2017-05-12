@@ -12,7 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 
-import com.example.mustache.cadastrolivros.dao.CadastroLivroDAO;
+import com.example.mustache.cadastrolivros.dao.LivroDAO;
 import com.example.mustache.cadastrolivros.model.Livro;
 
 import java.io.File;
@@ -33,26 +33,24 @@ public class CadastroLivroActivity extends AppCompatActivity {
         setContentView(R.layout.activity_cadastro_livro);
         Log.v(LOG, "CadastroLivroActivity inicializada");
 
-        final Intent intent = this.getIntent();
-        livroSelecionado = (Livro) intent.getSerializableExtra(LIVRO_SELECIONADO);
-
         this.helper = new FormularioHelper(this);
 
+        livroSelecionado = (Livro) getIntent().getSerializableExtra(LIVRO_SELECIONADO);
         if (livroSelecionado == null)
             Log.w(LOG, "Nenhum livro selecioando");
         else {
             Log.v(LOG, "O livro selecionado foi o: " + livroSelecionado.getId());
-            helper.setLivroNoFormulario(livroSelecionado);
+            helper.colocaLivroNoFormulario(livroSelecionado);
         }
 
         Button button = helper.getFotoButton();
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                localArquivoFoto = getExternalFilesDir(null) +
-                        "/" + System.currentTimeMillis()+".jpg";
-                Intent intentCamera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                localArquivoFoto = getExternalFilesDir(null) + "/" + System.currentTimeMillis()+".jpg";
                 Uri localFoto = Uri.fromFile(new File(localArquivoFoto));
+
+                Intent intentCamera = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 intentCamera.putExtra(MediaStore.EXTRA_OUTPUT, localFoto);
                 startActivityForResult(intentCamera, TIRA_FOTO);
             }
@@ -63,8 +61,8 @@ public class CadastroLivroActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == TIRA_FOTO) {
-            if (requestCode == Activity.RESULT_OK) {
+        if (requestCode == TIRA_FOTO) {
+            if (resultCode == Activity.RESULT_OK) {
                 helper.carregaImagem(this.localArquivoFoto);
             } else {
                 this.localArquivoFoto = null;
@@ -75,7 +73,6 @@ public class CadastroLivroActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_cadastro, menu);
-        Log.v(LOG, "Menu criado");
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -83,16 +80,11 @@ public class CadastroLivroActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_formulario_ok:
-                Log.v(LOG, "Item de menu clicado");
                 if ((helper.temNome() && (helper.temAutor()))){
 
-                    CadastroLivroDAO dao = new CadastroLivroDAO(CadastroLivroActivity.this, CadastroLivroDAO.DATABASE, null, CadastroLivroDAO.VERSION);
-                    Livro livro = helper.getLivroFromFormulario();
-
-                    if (livro.getId() == null)
-                        dao.insereLivro(livro);
-                    else
-                        dao.alteraLivro(livro);
+                    LivroDAO dao = new LivroDAO(CadastroLivroActivity.this);
+                    Livro livro = helper.pegaLivroDoFormulario();
+                    dao.insereOuAltera(livro);
 
                     dao.close();
                     finish();
@@ -104,5 +96,13 @@ public class CadastroLivroActivity extends AppCompatActivity {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        if (localArquivoFoto != null) {
+
+        }
+        super.onResume();
     }
 }
