@@ -16,7 +16,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.example.mustache.cadastrolivros.adapter.ListaLivrosAdapter;
 import com.example.mustache.cadastrolivros.converter.LivroConverter;
@@ -24,9 +23,11 @@ import com.example.mustache.cadastrolivros.dao.LivroDAO;
 import com.example.mustache.cadastrolivros.model.Livro;
 import com.example.mustache.cadastrolivros.permissions.Permissao;
 import com.example.mustache.cadastrolivros.support.WebClient;
+import com.example.mustache.cadastrolivros.task.EnviaLivroTask;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Random;
 
 public class ListaLivrosActivity extends AppCompatActivity {
 
@@ -173,22 +174,7 @@ public class ListaLivrosActivity extends AppCompatActivity {
         switch (item.getItemId()){
 
             case R.id.menu_enviar_notas:
-                LivroDAO dao = new LivroDAO(this);
-                List<Livro> livros = dao.getLista();
-                dao.close();
-
-                String json = new LivroConverter().toJson(livros);
-
-                WebClient webClient = new WebClient();
-                String resposta = null;
-                try {
-                    resposta = webClient.post(json);
-                } catch (IOException e) {
-                    Log.e(ListaLivrosActivity.LOG, "Problemas com o WebClient em tempo de execução");
-                    e.printStackTrace();
-                }
-
-                Log.i(LOG, "Reposta do JSON = " + resposta);
+                new EnviaLivroTask(this).execute();
                 return true;
         }
         return super.onOptionsItemSelected(item);
