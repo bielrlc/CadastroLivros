@@ -3,12 +3,14 @@ package com.example.mustache.cadastrolivros.adapter;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.mustache.cadastrolivros.ListaLivrosActivity;
 import com.example.mustache.cadastrolivros.R;
 import com.example.mustache.cadastrolivros.model.Livro;
 
@@ -48,8 +50,17 @@ public class ListaLivrosAdapter extends BaseAdapter {
 
         View layout = activity.getLayoutInflater().inflate(R.layout.item, parent, false);
         TextView nome = (TextView) layout.findViewById(R.id.item_nome);
+
         Livro livro = livros.get(position);
         nome.setText(livro.getNome());
+
+        TextView autor = (TextView) layout.findViewById(R.id.item_autor);
+        if (autor != null)
+            autor.setText(livro.getAutor());
+
+        TextView site = (TextView) layout.findViewById(R.id.item_site);
+        if (site != null)
+            site.setText(livro.getSite());
 
         Bitmap bm = null;
         if (livro.getCaminhoFoto() != null){

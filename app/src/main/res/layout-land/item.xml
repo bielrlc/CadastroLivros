@@ -18,7 +18,7 @@
         android:textStyle="italic"
         android:textColor="#000"/>
     <TextView
-        android:id="@+id/item_telefone"
+        android:id="@+id/item_autor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
@@ -33,7 +33,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_marginRight="10dp"
-        android:layout_below="@id/item_telefone"
+        android:layout_below="@id/item_autor"
         android:textSize="15sp"
         android:textStyle="italic"
         android:textColor="#000"/>
